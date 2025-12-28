@@ -3,113 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Phone Pro Elite</title>
+    <title>LineCall Pro</title>
     <style>
-        :root { --accent: #34c759; --bg: #000; --card: #1c1c1e; --text: #fff; --danger: #ff3b30; --blue: #0a84ff; --gray: #2c2c2e; --glass: rgba(255, 255, 255, 0.1); }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Helvetica Neue', Arial, sans-serif; }
-        body { background: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        :root { --line-green: #06c755; --line-blue: #8cabd0; --my-msg: #85e249; --bg: #fff; --text: #000; --gray: #f0f0f0; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; }
+        body { background: #000; margin: 0; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
         
-        /* コンテナ */
-        .app-container { width: 100%; max-width: 420px; height: 100vh; max-height: 900px; background: var(--card); border-radius: 40px; position: relative; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        @media (max-width: 500px) { .app-container { border-radius: 0; height: 100dvh; max-height: none; border: none; } }
+        .app-container { width: 100%; max-width: 450px; height: 100dvh; background: var(--bg); position: relative; display: flex; flex-direction: column; }
 
-        .content { flex: 1; padding: 25px; display: flex; flex-direction: column; align-items: center; width: 100%; }
+        /* 初期設定画面 */
+        #profile-setup { position: absolute; inset: 0; background: #fff; z-index: 4000; display: flex; flex-direction: column; align-items: center; padding: 60px 30px; }
+        .setup-avatar { font-size: 80px; width: 150px; height: 150px; background: var(--gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 30px; cursor: pointer; border: 4px solid var(--line-green); }
+        .setup-input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #ddd; font-size: 18px; text-align: center; margin-bottom: 20px; }
 
-        /* ヘッダー：自分の番号を大きく */
-        .header { width: 100%; text-align: center; margin-top: 30px; margin-bottom: 20px; }
-        .my-num-label { font-size: 14px; color: var(--accent); font-weight: bold; letter-spacing: 1px; margin-bottom: 5px; }
-        .my-num-display { font-size: 50px; font-weight: 900; letter-spacing: 4px; text-shadow: 0 0 15px rgba(52, 199, 89, 0.3); }
+        /* ヘッダー：自分の番号 */
+        .my-status-bar { background: #fff; padding: 10px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .my-num-badge { background: var(--line-green); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; }
 
-        /* 入力エリア */
-        .input-group { width: 100%; margin-bottom: 30px; }
-        input { width: 100%; padding: 20px; border-radius: 20px; border: 1px solid #444; background: var(--gray); color: white; font-size: 28px; text-align: center; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(52, 199, 89, 0.2); }
+        /* 連絡先リスト */
+        .contact-list { flex: 1; overflow-y: auto; padding: 10px 0; }
+        .contact-item { display: flex; align-items: center; padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #f9f9f9; }
+        .contact-item:active { background: #f5f5f5; }
+        .contact-avatar { font-size: 30px; width: 50px; height: 50px; background: #eee; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-right: 15px; }
+        .contact-info { flex: 1; }
+        .contact-name { font-weight: bold; font-size: 16px; }
 
-        /* ボタンデザイン */
-        .btn { width: 100%; padding: 18px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; margin: 10px 0; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 12px; transition: 0.2s; }
-        .btn:active { transform: scale(0.96); opacity: 0.9; }
-        .btn-call { background: linear-gradient(135deg, #34c759, #30d158); color: white; box-shadow: 0 10px 20px rgba(52, 199, 89, 0.2); }
-        .btn-google { background: white; color: black; margin-top: 20px; }
-        .btn-outline { background: var(--glass); border: 1px solid #444; color: white; }
+        /* チャット画面 (モーダル) */
+        #chat-view { position: absolute; inset: 0; background: var(--line-blue); z-index: 2000; display: none; flex-direction: column; }
+        .chat-header { background: rgba(0,0,0,0.05); padding: 10px 15px; display: flex; align-items: center; gap: 10px; }
+        .chat-title { flex: 1; font-weight: bold; text-align: center; }
+        .chat-main { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        
+        /* 吹き出し */
+        .msg { max-width: 75%; padding: 8px 12px; border-radius: 15px; font-size: 15px; position: relative; }
+        .msg.left { align-self: flex-start; background: #fff; }
+        .msg.right { align-self: flex-end; background: var(--my-msg); }
+        
+        .chat-input-area { background: #fff; padding: 10px; display: flex; gap: 10px; align-items: center; }
+        .chat-input { flex: 1; border: none; background: #f0f0f0; padding: 10px 15px; border-radius: 20px; outline: none; }
 
-        /* 通話画面 */
-        #call-screen { position: absolute; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        /* 通話ボタン */
+        .call-btn-group { display: flex; gap: 15px; }
+        .icon-btn { font-size: 20px; cursor: pointer; }
+
+        /* 通話中オーバーレイ */
+        #call-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; color: #fff; }
         #remote-video { width: 100%; height: 100%; object-fit: cover; position: absolute; }
-        #local-video { position: absolute; top: 50px; right: 20px; width: 110px; height: 160px; border-radius: 20px; border: 2px solid rgba(255,255,255,0.2); z-index: 2001; object-fit: cover; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        .calling-info { text-align: center; z-index: 2002; position: relative; }
-        .avatar { width: 150px; height: 150px; background: linear-gradient(135deg, #444, #222); border-radius: 75px; display: flex; align-items: center; justify-content: center; font-size: 60px; margin: 0 auto 30px; border: 3px solid #555; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
-
-        /* 通話操作バー */
-        .controls { position: absolute; bottom: 60px; width: 100%; display: flex; justify-content: space-evenly; align-items: center; z-index: 2003; }
-        .ctrl-btn { width: 70px; height: 70px; border-radius: 35px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 24px; cursor: pointer; backdrop-filter: blur(20px); transition: 0.3s; }
-        .ctrl-btn.active { background: var(--blue); }
-        .ctrl-btn.hangup { background: var(--danger); width: 85px; height: 85px; font-size: 35px; }
-
-        /* 連絡先モーダル */
-        #contact-modal { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 2500; display: none; flex-direction: column; padding: 30px; }
-        .list-item { background: var(--gray); padding: 18px; border-radius: 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid transparent; }
-        .list-item:active { background: #3a3a3c; border-color: var(--blue); }
+        #local-video { position: absolute; top: 20px; right: 20px; width: 100px; height: 150px; border-radius: 10px; border: 1px solid #555; display: none; }
+        .call-ui-content { position: relative; z-index: 5001; text-align: center; }
+        .hangup-btn { background: #ff3b30; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin-top: 50px; border: none; color: #fff; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <div id="auth-ui" class="content" style="justify-content: center;">
-            <div style="font-size: 40px; margin-bottom: 10px;">📱</div>
-            <h1 style="margin: 0 0 40px 0; font-weight: 900; letter-spacing: -1px;">Phone Pro Elite</h1>
-            <input type="email" id="email" placeholder="メールアドレス" style="font-size: 16px; margin-bottom: 10px;">
-            <input type="password" id="password" placeholder="パスワード" style="font-size: 16px;">
-            <button onclick="doLogin()" class="btn btn-call">ログイン</button>
-            <button onclick="doGoogleLogin()" class="btn btn-google">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Googleでサインイン
-            </button>
+        <div id="profile-setup">
+            <h2>プロフィール設定</h2>
+            <div class="setup-avatar" id="current-emoji" onclick="changeEmoji()">👤</div>
+            <input type="text" id="user-name-input" class="setup-input" placeholder="名前を入力">
+            <button onclick="saveProfile()" class="setup-input" style="background:var(--line-green); color:#fff; border:none; font-weight:bold;">はじめる</button>
         </div>
 
-        <div id="main-ui" class="content" style="display:none;">
-            <div class="header">
-                <div class="my-num-label">YOUR NUMBER</div>
-                <div class="my-num-display" id="my-num-display">--- ---</div>
-            </div>
-            
-            <div class="input-group">
-                <input type="number" id="target-num-input" placeholder="000000">
+        <div class="my-status-bar">
+            <div style="font-size: 12px; color: #888;">マイ番号: <span id="my-num-display" class="my-num-badge">------</span></div>
+            <button onclick="showAddContact()" style="background:none; border:none; font-size:20px;">👤＋</button>
+        </div>
+        
+        <div class="contact-list" id="contact-list">
             </div>
 
-            <button id="btn-audio-call" class="btn btn-call">📞 通話を開始</button>
-            <button onclick="toggleContacts(true)" class="btn btn-outline" style="margin-top: 20px;">📖 連絡先を開く</button>
-            
-            <div style="width:100%; margin-top:40px; color:#666; font-size:12px; font-weight:bold; letter-spacing:1px;">RECENT CALLS</div>
-            <div id="history-list" style="width:100%; overflow-y:auto; flex:1; padding-top:10px;"></div>
+        <div id="chat-view">
+            <div class="chat-header">
+                <span onclick="closeChat()" class="icon-btn">◀</span>
+                <div class="chat-title" id="chat-with-name">名前</div>
+                <div class="call-btn-group">
+                    <span onclick="startCall('audio')" class="icon-btn">📞</span>
+                    <span onclick="startCall('video')" class="icon-btn">🎥</span>
+                </div>
+            </div>
+            <div class="chat-main" id="chat-msgs"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input-text" class="chat-input" placeholder="メッセージを入力">
+                <button onclick="sendMsg()" style="background:none; border:none; color:var(--line-green); font-weight:bold;">送信</button>
+            </div>
         </div>
 
-        <div id="contact-modal">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-                <h2 style="margin:0; font-size: 28px;">連絡先</h2>
-                <button onclick="toggleContacts(false)" style="background:none; border:none; color:var(--blue); font-size:18px; font-weight:bold;">閉じる</button>
-            </div>
-            <div style="background: var(--gray); padding: 20px; border-radius: 25px; margin-bottom: 30px;">
-                <input type="text" id="new-name" placeholder="名前" style="font-size:16px; padding:12px; margin-bottom:10px;">
-                <input type="number" id="new-num" placeholder="番号" style="font-size:16px; padding:12px; margin-bottom:10px;">
-                <button onclick="saveContact()" class="btn btn-call" style="margin:0;">追加する</button>
-            </div>
-            <div id="contact-list" style="flex:1; overflow-y:auto;"></div>
-        </div>
-
-        <div id="call-screen">
+        <div id="call-overlay">
             <video id="remote-video" autoplay playsinline></video>
             <video id="local-video" autoplay playsinline muted></video>
-            
-            <div id="calling-ui" class="calling-info">
-                <div class="avatar">👤</div>
-                <div id="call-target-name" style="font-size:32px; font-weight:bold; margin-bottom:10px;">接続中</div>
-                <div style="color: var(--accent); letter-spacing: 2px; font-size: 14px;">CALLING...</div>
-            </div>
-
-            <div class="controls">
-                <button id="toggle-video-btn" class="ctrl-btn">🎥</button>
-                <button onclick="location.reload()" class="ctrl-btn hangup">✕</button>
-                <button id="toggle-audio-btn" class="ctrl-btn active">🎤</button>
+            <div class="call-ui-content" id="call-info">
+                <div class="setup-avatar" style="border:none;" id="call-avatar">👤</div>
+                <h2 id="call-name">名前</h2>
+                <p id="call-status">通話中...</p>
+                <div style="display:flex; gap:20px; justify-content:center;">
+                    <button id="v-toggle" onclick="toggleVideo()" style="padding:10px; border-radius:10px; border:none;">🎥 ON/OFF</button>
+                </div>
+                <button onclick="location.reload()" class="hangup-btn">✕</button>
             </div>
         </div>
     </div>
@@ -117,147 +106,163 @@
     <script src="https://cdn.jsdelivr.net/npm/@skyway-sdk/room/dist/skyway_room.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAqypcabvYQDHzxNnjJmbDMs-vbYXLPhI8",
-            authDomain: "webt-f0724.firebaseapp.com",
-            projectId: "webt-f0724",
-            storageBucket: "webt-f0724.firebasestorage.app",
-            appId: "1:835151283262:web:a7efe3cc384fa1a61dfd6f"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyAqypcabvYQDHzxNnjJmbDMs-vbYXLPhI8", authDomain: "webt-f0724.firebaseapp.com", projectId: "webt-f0724", storageBucket: "webt-f0724.firebasestorage.app", appId: "1:835151283262:web:a7efe3cc384fa1a61dfd6f" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
         const SKYWAY_ID = '697b5b5d-3f7c-4430-bd32-deb0ca2de936';
 
-        window.doLogin = () => signInWithEmailAndPassword(auth, email.value, password.value);
-        window.doGoogleLogin = () => signInWithPopup(auth, provider);
-        window.doLogout = () => signOut(auth);
-        window.toggleContacts = (show) => { document.getElementById('contact-modal').style.display = show ? 'flex' : 'none'; };
+        let myProfile = { name: "", emoji: "👤", num: "" };
+        let selectedContact = null;
+
+        // エモジ変更
+        const emojis = ["👤","🐱","🐶","🦊","🐻","🐼","🦁","🐸"];
+        window.changeEmoji = () => {
+            const current = emojis.indexOf(currentEmoji.innerText);
+            currentEmoji.innerText = emojis[(current + 1) % emojis.length];
+        };
+
+        // プロフィール保存
+        window.saveProfile = () => {
+            if(!userNameInput.value) return alert("名前を入れてね");
+            myProfile.name = userNameInput.value;
+            myProfile.emoji = currentEmoji.innerText;
+            profileSetup.style.display = 'none';
+            doGoogleLogin();
+        };
+
+        window.doGoogleLogin = () => signInWithPopup(auth, new GoogleAuthProvider());
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                authUi.style.display = 'none';
-                mainUi.style.display = 'flex';
-                const myNum = user.uid.replace(/\D/g, '').substring(0, 6);
-                myNumDisplay.innerText = myNum;
-                syncData(user.uid);
-                initSkyWay(myNum);
-            } else {
-                authUi.style.display = 'flex';
-                mainUi.style.display = 'none';
+                myProfile.num = user.uid.replace(/\D/g, '').substring(0, 6);
+                myNumDisplay.innerText = myProfile.num;
+                profileSetup.style.display = 'none';
+                syncContacts();
+                initSkyWay();
             }
         });
 
-        window.saveContact = async () => {
-            if(!newName.value || !newNum.value) return;
-            await addDoc(collection(db, "contacts"), { uid: auth.currentUser.uid, name: newName.value, num: newNum.value });
-            newName.value = ""; newNum.value = "";
+        // 連絡先追加
+        window.showAddContact = () => {
+            const n = prompt("名前を入力");
+            const num = prompt("6桁の番号を入力");
+            if(n && num) addDoc(collection(db, "contacts"), { uid: auth.currentUser.uid, name: n, num: num, emoji: emojis[Math.floor(Math.random()*emojis.length)] });
         };
 
-        function syncData(uid) {
-            onSnapshot(query(collection(db, "contacts"), where("uid", "==", uid)), s => {
+        function syncContacts() {
+            onSnapshot(query(collection(db, "contacts"), where("uid", "==", auth.currentUser.uid)), s => {
                 contactList.innerHTML = "";
                 s.forEach(doc => {
                     const d = doc.data();
                     const div = document.createElement('div');
-                    div.className = 'list-item';
-                    div.innerHTML = `<div><div style="font-weight:bold; font-size:18px;">${d.name}</div><div style="color:#888; font-size:14px;">${d.num}</div></div><div style="font-size:24px;">📞</div>`;
-                    div.onclick = () => { toggleContacts(false); startCall(d.num); };
+                    div.className = 'contact-item';
+                    div.innerHTML = `<div class="contact-avatar">${d.emoji || '👤'}</div><div class="contact-info"><div class="contact-name">${d.name}</div></div>`;
+                    div.onclick = () => openChat(d);
                     contactList.appendChild(div);
-                });
-            });
-            onSnapshot(query(collection(db, "calls"), where("uid", "==", uid), orderBy("timestamp", "desc"), limit(5)), s => {
-                historyList.innerHTML = "";
-                s.forEach(doc => {
-                    const d = doc.data();
-                    const div = document.createElement('div');
-                    div.className = 'list-item';
-                    div.style.padding = "12px 18px";
-                    div.innerHTML = `<div><div style="font-weight:bold;">${d.target}</div></div><div style="font-size:18px;">${d.type==='video'?'🎥':'📞'}</div>`;
-                    div.onclick = () => startCall(d.target);
-                    historyList.appendChild(div);
                 });
             });
         }
 
-        let startCall;
-        async function initSkyWay(myNum) {
+        // チャット
+        window.openChat = (contact) => {
+            selectedContact = contact;
+            chatWithName.innerText = contact.name;
+            chatView.style.display = 'flex';
+            const q = query(collection(db, "msgs"), where("pair", "in", [myProfile.num+contact.num, contact.num+myProfile.num]), orderBy("time", "asc"));
+            onSnapshot(q, s => {
+                chatMsgs.innerHTML = "";
+                s.forEach(m => {
+                    const data = m.data();
+                    const div = document.createElement('div');
+                    div.className = `msg ${data.from === myProfile.num ? 'right' : 'left'}`;
+                    div.innerText = data.text;
+                    chatMsgs.appendChild(div);
+                });
+                chatMsgs.scrollTop = chatMsgs.scrollHeight;
+            });
+        };
+
+        window.closeChat = () => chatView.style.display = 'none';
+
+        window.sendMsg = () => {
+            if(!chatInputText.value) return;
+            addDoc(collection(db, "msgs"), { pair: myProfile.num + selectedContact.num, from: myProfile.num, text: chatInputText.value, time: serverTimestamp() });
+            chatInputText.value = "";
+        };
+
+        // 通話関連
+        let startCallFunc, toggleVideoFunc;
+        async function initSkyWay() {
             const { SkyWayContext, SkyWayRoom, SkyWayStreamFactory } = skyway_room;
             const context = await SkyWayContext.Create(SKYWAY_ID);
-            const room = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: myNum });
+            const room = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: myProfile.num });
             const member = await room.join();
 
-            let localAudio, localVideo, videoPublication;
+            let localVideoTrack, videoPub;
 
-            startCall = async (target) => {
-                if(!target) return;
-                callScreen.style.display = 'flex';
-                await addDoc(collection(db, "calls"), { uid: auth.currentUser.uid, target, type: 'audio', timestamp: serverTimestamp() });
-                
-                const tRoom = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: target });
+            window.startCall = async (type) => {
+                callOverlay.style.display = 'flex';
+                callName.innerText = selectedContact.name;
+                callAvatar.innerText = selectedContact.emoji;
+
+                const tRoom = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: selectedContact.num });
                 const tMember = await tRoom.join();
-                localAudio = await SkyWayStreamFactory.createMicrophoneAudioStream();
-                await tMember.publish(localAudio);
+                const audio = await SkyWayStreamFactory.createMicrophoneAudioStream();
+                await tMember.publish(audio);
 
                 tRoom.onStreamPublished.add(async (e) => {
                     const { stream } = await tMember.subscribe(e.publication.id);
                     if (stream.contentType === 'video') {
                         stream.attach(remoteVideo);
-                        remoteVideo.style.display = 'block';
-                        callingUi.style.display = 'none';
+                        callInfo.style.opacity = "0.2";
                     }
                 });
             };
 
-            document.getElementById('toggle-video-btn').onclick = async function() {
-                if (!localVideo) {
-                    localVideo = await SkyWayStreamFactory.createCameraVideoStream();
-                    localVideo.attach(document.getElementById('local-video'));
-                    document.getElementById('local-video').style.display = 'block';
-                    document.getElementById('remote-video').style.display = 'block';
-                    document.getElementById('calling-ui').style.display = 'none';
-                    videoPublication = await member.publish(localVideo);
-                    this.classList.add('active');
+            window.toggleVideo = async () => {
+                if(!localVideoTrack) {
+                    localVideoTrack = await SkyWayStreamFactory.createCameraVideoStream();
+                    localVideoTrack.attach(localVideo);
+                    localVideo.style.display = 'block';
+                    videoPub = await member.publish(localVideoTrack);
                 } else {
-                    await videoPublication.unpublish();
-                    localVideo.release();
-                    localVideo = null;
-                    document.getElementById('local-video').style.display = 'none';
-                    this.classList.remove('active');
+                    await videoPub.unpublish();
+                    localVideoTrack.release();
+                    localVideoTrack = null;
+                    localVideo.style.display = 'none';
                 }
             };
 
-            btnAudioCall.onclick = () => startCall(targetNumInput.value);
-
             room.onStreamPublished.add(async (e) => {
                 if (e.publication.publisher.id === member.id) return;
-                callScreen.style.display = 'flex';
+                callOverlay.style.display = 'flex';
                 const { stream } = await member.subscribe(e.publication.id);
                 if (stream.contentType === 'video') {
                     stream.attach(remoteVideo);
-                    remoteVideo.style.display = 'block';
-                    callingUi.style.display = 'none';
+                    callInfo.style.opacity = "0.2";
                 }
             });
         }
 
-        const authUi = document.getElementById('auth-ui');
-        const mainUi = document.getElementById('main-ui');
-        const callScreen = document.getElementById('call-screen');
+        const profileSetup = document.getElementById('profile-setup');
+        const currentEmoji = document.getElementById('current-emoji');
+        const userNameInput = document.getElementById('user-name-input');
         const myNumDisplay = document.getElementById('my-num-display');
         const contactList = document.getElementById('contact-list');
-        const historyList = document.getElementById('history-list');
-        const targetNumInput = document.getElementById('target-num-input');
+        const chatView = document.getElementById('chat-view');
+        const chatMsgs = document.getElementById('chat-msgs');
+        const chatInputText = document.getElementById('chat-input-text');
+        const chatWithName = document.getElementById('chat-with-name');
+        const callOverlay = document.getElementById('call-overlay');
+        const callName = document.getElementById('call-name');
+        const callAvatar = document.getElementById('call-avatar');
         const remoteVideo = document.getElementById('remote-video');
-        const callingUi = document.getElementById('calling-ui');
-        const btnAudioCall = document.getElementById('btn-audio-call');
-        const newName = document.getElementById('new-name');
-        const newNum = document.getElementById('new-num');
+        const localVideo = document.getElementById('local-video');
+        const callInfo = document.getElementById('call-info');
     </script>
 </body>
 </html>
