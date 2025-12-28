@@ -2,68 +2,69 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NextGen Phone</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Phone App Pro</title>
     <style>
-        :root { --accent: #34c759; --bg: #000; --card: #1c1c1e; --text: #fff; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        :root { --accent: #34c759; --bg: #000; --card: #1c1c1e; --text: #fff; --danger: #ff3b30; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
-        .iphone-frame { width: 375px; height: 750px; background: var(--card); border-radius: 45px; position: relative; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 50px 100px rgba(0,0,0,0.8); }
-        .screen { flex: 1; padding: 30px; display: flex; flex-direction: column; align-items: center; transition: 0.5s; }
+        /* スマホでも崩れない魔法のフレーム */
+        .iphone-frame { width: 100%; max-width: 400px; height: 100vh; max-height: 850px; background: var(--card); border-radius: 40px; position: relative; border: 4px solid #333; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 50px 100px rgba(0,0,0,0.8); }
+        @media (max-width: 500px) { .iphone-frame { border: none; border-radius: 0; height: 100dvh; } }
+
+        .screen { flex: 1; padding: 25px; display: flex; flex-direction: column; align-items: center; width: 100%; }
+        .logo { font-size: 28px; font-weight: 800; margin: 40px 0; background: linear-gradient(45deg, #34c759, #007aff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        /* タイポグラフィ */
-        h1 { font-size: 28px; font-weight: 700; margin-bottom: 30px; letter-spacing: -1px; }
-        .number-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-        .big-number { font-size: 42px; font-weight: 800; color: var(--accent); margin: 10px 0 30px; }
+        /* 自分の番号カード */
+        .my-number-card { background: #2c2c2e; width: 100%; padding: 20px; border-radius: 25px; text-align: center; margin-bottom: 25px; border: 1px solid #3a3a3c; }
+        .big-number { font-size: 44px; font-weight: 800; color: var(--text); letter-spacing: 2px; margin: 8px 0; }
+        .status-badge { display: inline-flex; align-items: center; font-size: 12px; color: var(--accent); background: rgba(52, 199, 89, 0.1); padding: 5px 12px; border-radius: 20px; font-weight: bold; }
 
-        /* 入力エリア */
-        input { width: 100%; padding: 18px; margin: 8px 0; border-radius: 15px; border: none; background: #2c2c2e; color: white; font-size: 16px; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { background: #3a3a3c; box-shadow: 0 0 0 2px var(--accent); }
+        input { width: 100%; padding: 18px; margin: 8px 0; border-radius: 15px; border: none; background: #2c2c2e; color: white; font-size: 18px; text-align: center; outline: none; }
+        .btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; font-size: 18px; margin: 8px 0; transition: 0.2s; }
+        .btn-call { background: var(--accent); color: white; border-radius: 50px; }
+        .btn-link { background: transparent; color: #0a84ff; font-size: 14px; }
 
-        /* ボタン */
-        button { width: 100%; padding: 18px; margin: 10px 0; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; font-size: 17px; transition: 0.2s; }
-        .primary { background: var(--accent); color: white; }
-        .primary:active { transform: scale(0.98); opacity: 0.9; }
-        .google { background: white; color: black; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .text-link { background: transparent; color: #0a84ff; font-size: 14px; }
-
-        /* ビデオ通話レイアウト */
-        #video-overlay { position: absolute; inset: 0; background: #000; z-index: 10; display: none; }
+        /* 通話画面（フルスクリーン） */
+        #call-ui { position: absolute; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; }
         #remote-video { width: 100%; height: 100%; object-fit: cover; }
-        #local-video { position: absolute; top: 50px; right: 20px; width: 100px; height: 150px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.3); object-fit: cover; z-index: 11; }
-        .call-controls { position: absolute; bottom: 50px; width: 100%; display: flex; justify-content: center; z-index: 12; }
-        .hangup { width: 70px; height: 70px; border-radius: 50%; background: #ff3b30; color: white; font-size: 30px; line-height: 0; }
-
-        #auth-screen, #app-content { width: 100%; height: 100%; box-sizing: border-box; }
+        #local-video { position: absolute; top: 60px; right: 20px; width: 100px; height: 150px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.3); object-fit: cover; z-index: 1001; }
+        .call-controls { position: absolute; bottom: 60px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 1002; }
+        .hangup { width: 75px; height: 75px; border-radius: 50%; background: var(--danger); border: none; color: white; font-size: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(255,59,48,0.5); }
     </style>
 </head>
 <body>
 
     <div class="iphone-frame">
         <div id="auth-screen" class="screen">
-            <h1>Phone App</h1>
-            <input type="email" id="email" placeholder="Email Address">
-            <input type="password" id="password" placeholder="Password">
-            <button onclick="handleEmailLogin()" class="primary">Sign In</button>
-            <button onclick="handleEmailSignUp()" class="text-link">Create Account</button>
-            <div style="margin: 20px 0; color: #444;">OR</div>
-            <button onclick="handleGoogleLogin()" class="google">Sign in with Google</button>
+            <div class="logo">Phone App</div>
+            <p style="color:#888; margin-bottom:20px;">はじめるにはログインが必要です</p>
+            <input type="email" id="email" placeholder="メールアドレス">
+            <input type="password" id="password" placeholder="パスワード">
+            <button onclick="handleEmailLogin()" class="btn btn-call" style="border-radius:15px;">ログイン</button>
+            <button onclick="handleEmailSignUp()" class="btn btn-link">新しくアカウントを作る</button>
         </div>
 
         <div id="app-content" class="screen" style="display:none;">
-            <div class="number-label">My Number</div>
-            <div class="big-number" id="my-number">------</div>
+            <div class="my-number-card">
+                <span class="status-badge">● 待受中</span>
+                <div class="big-number" id="my-number">------</div>
+                <div style="font-size: 12px; color: #888;">あなたの電話番号</div>
+            </div>
             
-            <input type="number" id="target-number" placeholder="Enter 6-digit number">
-            <button id="call-start" class="primary" style="border-radius: 50px;">📞 Call</button>
+            <p style="color:#888; font-size:14px;">相手の番号を入力して発信</p>
+            <input type="number" id="target-number" placeholder="6桁の番号">
+            <button id="call-start" class="btn btn-call">📞 ビデオ通話</button>
             
-            <button onclick="handleLogout()" class="text-link" style="margin-top: auto; color: #ff453a;">Log Out</button>
+            <button onclick="handleLogout()" class="btn btn-link" style="margin-top: auto; color: #888;">ログアウト</button>
         </div>
 
-        <div id="video-overlay">
+        <div id="call-ui">
             <video id="remote-video" autoplay playsinline></video>
             <video id="local-video" autoplay playsinline muted></video>
             <div class="call-controls">
+                <div id="call-status" style="margin-bottom: 20px; font-weight: 300;">呼び出し中...</div>
                 <button onclick="location.reload()" class="hangup">✕</button>
             </div>
         </div>
@@ -72,7 +73,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@skyway-sdk/room/dist/skyway_room.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAqypcabvYQDHzxNnjJmbDMs-vbYXLPhI8",
@@ -85,60 +86,84 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+        const SKYWAY_ID = '697b5b5d-3f7c-4430-bd32-deb0ca2de936';
 
-        const APP_ID = '697b5b5d-3f7c-4430-bd32-deb0ca2de936';
-        const SECRET = 'wbcXuybOG1z0vei2ZIZmlM/TmFA7nH2KXxZHQdgFOXw=';
+        // 認証ロジック
+        window.handleEmailSignUp = () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            createUserWithEmailAndPassword(auth, e, p).then(() => alert("登録完了！")).catch(err => alert("作成エラー。FirebaseのAuth設定を確認してね"));
+        };
 
-        // 着信音の準備
-        const ringtone = new Audio('https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3');
-        ringtone.loop = true;
+        window.handleEmailLogin = () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, e, p).catch(err => alert("ログイン失敗。アドレスかパスが違います"));
+        };
 
-        window.handleGoogleLogin = () => signInWithPopup(auth, provider);
-        window.handleEmailSignUp = () => createUserWithEmailAndPassword(auth, email.value, password.value).catch(e => alert(e.message));
-        window.handleEmailLogin = () => signInWithEmailAndPassword(auth, email.value, password.value).catch(e => alert("Login Error"));
         window.handleLogout = () => signOut(auth);
 
+        // 状態監視
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('app-content').style.display = 'flex';
-                const num = user.uid.replace(/\D/g, '').substring(0, 6) || "123456";
+                // ユーザーIDの数字部分だけを抜き出して6桁の番号にする
+                const num = user.uid.replace(/\D/g, '').substring(0, 6) || "777888";
                 document.getElementById('my-number').innerText = num;
-                // 待ち受け開始
-                startWait(num);
+                setupSkyWay(num);
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('app-content').style.display = 'none';
             }
         });
 
-        // 待ち受け・通話ロジック
-        async function startWait(myNum) {
+        // SkyWayメインロジック (ドメイン制限に強い最新版)
+        async function setupSkyWay(myNum) {
             const { SkyWayContext, SkyWayRoom, SkyWayStreamFactory } = skyway_room;
-            const context = await SkyWayContext.Create(APP_ID, { auth: { type: 'p2p', secretKey: SECRET } });
-            const room = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: myNum });
             
-            // 入室があったら音を鳴らす
-            room.onMemberJoined.add(() => ringtone.play());
+            // 重要：ドメイン制限の問題を避けるため、テスト時は認証情報をシンプルに
+            const context = await SkyWayContext.Create(SKYWAY_ID);
+            const room = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: myNum });
+            const member = await room.join();
 
-            document.getElementById('call-start').onclick = async () => {
-                const target = document.getElementById('target-number').value;
-                if(!target) return;
-                
-                document.getElementById('video-overlay').style.display = 'block';
-                const targetRoom = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: target });
-                const member = await targetRoom.join();
-                
+            // 誰かからかかってきた時
+            room.onStreamPublished.add(async (e) => {
+                if (e.publication.publisher.id === member.id) return;
+                document.getElementById('call-ui').style.display = 'flex';
+                document.getElementById('call-status').innerText = "接続中...";
+
                 const { audio, video } = await SkyWayStreamFactory.createMicrophoneAudioAndCameraStream();
                 video.attach(document.getElementById('local-video'));
-                await member.publish(audio);
-                await member.publish(video);
+                await member.publish(audio); await member.publish(video);
+                
+                const { stream } = await member.subscribe(e.publication.id);
+                if (stream.contentType === 'video') {
+                    stream.attach(document.getElementById('remote-video'));
+                    document.getElementById('call-status').innerText = "通話中";
+                }
+            });
 
-                targetRoom.onStreamPublished.add(async (e) => {
-                    const { stream } = await member.subscribe(e.publication.id);
-                    if (stream.contentType === 'video') stream.attach(document.getElementById('remote-video'));
-                    ringtone.pause();
+            // 自分からかける時
+            document.getElementById('call-start').onclick = async () => {
+                const target = document.getElementById('target-number').value;
+                if(!target) return alert("番号を入力してね");
+
+                document.getElementById('call-ui').style.display = 'flex';
+                const tRoom = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: target });
+                const tMember = await tRoom.join();
+
+                const { audio, video } = await SkyWayStreamFactory.createMicrophoneAudioAndCameraStream();
+                video.attach(document.getElementById('local-video'));
+                await tMember.publish(audio); await tMember.publish(video);
+
+                tRoom.onStreamPublished.add(async (e) => {
+                    if (e.publication.publisher.id === tMember.id) return;
+                    const { stream } = await tMember.subscribe(e.publication.id);
+                    if (stream.contentType === 'video') {
+                        stream.attach(document.getElementById('remote-video'));
+                        document.getElementById('call-status').innerText = "接続されました";
+                    }
                 });
             };
         }
