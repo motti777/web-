@@ -3,70 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Phone Pro</title>
+    <title>Phone Pro Elite</title>
     <style>
-        :root { --accent: #34c759; --bg: #000; --card: #1c1c1e; --text: #fff; --danger: #ff3b30; --blue: #0a84ff; --gray: #2c2c2e; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; }
-        body { background: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        :root { --accent: #34c759; --bg: #000; --card: #1c1c1e; --text: #fff; --danger: #ff3b30; --blue: #0a84ff; --gray: #2c2c2e; --glass: rgba(255, 255, 255, 0.1); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Helvetica Neue', Arial, sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
         
-        .app-container { width: 100%; max-width: 400px; height: 100vh; max-height: 850px; background: var(--card); border-radius: 35px; position: relative; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #333; }
-        @media (max-width: 500px) { .app-container { border-radius: 0; height: 100dvh; max-height: none; } }
+        /* コンテナ */
+        .app-container { width: 100%; max-width: 420px; height: 100vh; max-height: 900px; background: var(--card); border-radius: 40px; position: relative; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        @media (max-width: 500px) { .app-container { border-radius: 0; height: 100dvh; max-height: none; border: none; } }
 
-        .content { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; width: 100%; }
-        input { width: 100%; padding: 18px; margin: 10px 0; border-radius: 15px; border: 1px solid #444; background: var(--gray); color: white; font-size: 24px; text-align: center; outline: none; }
-        
-        .btn { width: 100%; padding: 16px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; margin: 5px 0; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-call { background: var(--accent); color: white; }
-        .btn-google { background: white; color: black; }
-        .btn-contact-open { background: #444; color: white; }
+        .content { flex: 1; padding: 25px; display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+        /* ヘッダー：自分の番号を大きく */
+        .header { width: 100%; text-align: center; margin-top: 30px; margin-bottom: 20px; }
+        .my-num-label { font-size: 14px; color: var(--accent); font-weight: bold; letter-spacing: 1px; margin-bottom: 5px; }
+        .my-num-display { font-size: 50px; font-weight: 900; letter-spacing: 4px; text-shadow: 0 0 15px rgba(52, 199, 89, 0.3); }
+
+        /* 入力エリア */
+        .input-group { width: 100%; margin-bottom: 30px; }
+        input { width: 100%; padding: 20px; border-radius: 20px; border: 1px solid #444; background: var(--gray); color: white; font-size: 28px; text-align: center; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(52, 199, 89, 0.2); }
+
+        /* ボタンデザイン */
+        .btn { width: 100%; padding: 18px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; margin: 10px 0; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 12px; transition: 0.2s; }
+        .btn:active { transform: scale(0.96); opacity: 0.9; }
+        .btn-call { background: linear-gradient(135deg, #34c759, #30d158); color: white; box-shadow: 0 10px 20px rgba(52, 199, 89, 0.2); }
+        .btn-google { background: white; color: black; margin-top: 20px; }
+        .btn-outline { background: var(--glass); border: 1px solid #444; color: white; }
 
         /* 通話画面 */
-        #call-screen { position: absolute; inset: 0; background: #1c1c1e; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        #remote-video { width: 100%; height: 100%; object-fit: cover; background: #000; display: none; }
-        #local-video { position: absolute; top: 40px; right: 20px; width: 100px; height: 150px; border-radius: 15px; border: 1px solid #555; z-index: 2001; object-fit: cover; display: none; }
+        #call-screen { position: absolute; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        #remote-video { width: 100%; height: 100%; object-fit: cover; position: absolute; }
+        #local-video { position: absolute; top: 50px; right: 20px; width: 110px; height: 160px; border-radius: 20px; border: 2px solid rgba(255,255,255,0.2); z-index: 2001; object-fit: cover; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        .calling-ui { text-align: center; z-index: 2002; }
-        .avatar { width: 120px; height: 120px; background: #444; border-radius: 60px; display: flex; align-items: center; justify-content: center; font-size: 50px; margin: 0 auto 20px; }
-        
-        /* 通話中のコントロール */
-        .call-controls { position: absolute; bottom: 40px; width: 100%; display: flex; justify-content: space-evenly; align-items: center; padding: 0 20px; z-index: 2003; }
-        .control-btn { width: 60px; height: 60px; border-radius: 30px; border: none; background: rgba(255,255,255,0.2); color: white; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .control-btn.active { background: var(--blue); }
-        .control-btn.hangup { background: var(--danger); width: 75px; height: 75px; font-size: 30px; }
+        .calling-info { text-align: center; z-index: 2002; position: relative; }
+        .avatar { width: 150px; height: 150px; background: linear-gradient(135deg, #444, #222); border-radius: 75px; display: flex; align-items: center; justify-content: center; font-size: 60px; margin: 0 auto 30px; border: 3px solid #555; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
 
-        /* 連絡先シート */
-        #contact-sheet { position: absolute; inset: 0; background: var(--card); z-index: 1500; display: none; flex-direction: column; padding: 20px; }
-        .list-item { background: var(--gray); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        /* 通話操作バー */
+        .controls { position: absolute; bottom: 60px; width: 100%; display: flex; justify-content: space-evenly; align-items: center; z-index: 2003; }
+        .ctrl-btn { width: 70px; height: 70px; border-radius: 35px; border: none; background: rgba(255,255,255,0.1); color: white; font-size: 24px; cursor: pointer; backdrop-filter: blur(20px); transition: 0.3s; }
+        .ctrl-btn.active { background: var(--blue); }
+        .ctrl-btn.hangup { background: var(--danger); width: 85px; height: 85px; font-size: 35px; }
+
+        /* 連絡先モーダル */
+        #contact-modal { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 2500; display: none; flex-direction: column; padding: 30px; }
+        .list-item { background: var(--gray); padding: 18px; border-radius: 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 1px solid transparent; }
+        .list-item:active { background: #3a3a3c; border-color: var(--blue); }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <div id="auth-ui" class="content">
-            <h2 style="color: var(--accent); margin-top: 50px;">Phone App Pro</h2>
-            <input type="email" id="email" placeholder="メール" style="font-size: 16px;">
+        <div id="auth-ui" class="content" style="justify-content: center;">
+            <div style="font-size: 40px; margin-bottom: 10px;">📱</div>
+            <h1 style="margin: 0 0 40px 0; font-weight: 900; letter-spacing: -1px;">Phone Pro Elite</h1>
+            <input type="email" id="email" placeholder="メールアドレス" style="font-size: 16px; margin-bottom: 10px;">
             <input type="password" id="password" placeholder="パスワード" style="font-size: 16px;">
             <button onclick="doLogin()" class="btn btn-call">ログイン</button>
             <button onclick="doGoogleLogin()" class="btn btn-google">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Googleでログイン
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20"> Googleでサインイン
             </button>
         </div>
 
         <div id="main-ui" class="content" style="display:none;">
-            <div style="background: var(--gray); padding: 10px; border-radius: 15px; text-align: center; margin-bottom: 20px;">
-                あなたの番号: <span id="my-num-display" style="font-size: 24px; font-weight: bold; display: block;">---</span>
+            <div class="header">
+                <div class="my-num-label">YOUR NUMBER</div>
+                <div class="my-num-display" id="my-num-display">--- ---</div>
             </div>
-            <input type="number" id="target-num-input" placeholder="番号を入力">
-            <button id="btn-audio-call" class="btn btn-call">📞 電話をかける</button>
-            <button onclick="toggleContacts(true)" class="btn btn-contact-open">📖 連絡先を見る</button>
             
-            <div id="history-list" style="width:100%; margin-top:20px; overflow-y:auto;"></div>
+            <div class="input-group">
+                <input type="number" id="target-num-input" placeholder="000000">
+            </div>
+
+            <button id="btn-audio-call" class="btn btn-call">📞 通話を開始</button>
+            <button onclick="toggleContacts(true)" class="btn btn-outline" style="margin-top: 20px;">📖 連絡先を開く</button>
+            
+            <div style="width:100%; margin-top:40px; color:#666; font-size:12px; font-weight:bold; letter-spacing:1px;">RECENT CALLS</div>
+            <div id="history-list" style="width:100%; overflow-y:auto; flex:1; padding-top:10px;"></div>
         </div>
 
-        <div id="contact-sheet">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3 style="margin:0;">連絡先</h3>
-                <button onclick="toggleContacts(false)" style="background:none; border:none; color:var(--blue);">閉じる</button>
+        <div id="contact-modal">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                <h2 style="margin:0; font-size: 28px;">連絡先</h2>
+                <button onclick="toggleContacts(false)" style="background:none; border:none; color:var(--blue); font-size:18px; font-weight:bold;">閉じる</button>
+            </div>
+            <div style="background: var(--gray); padding: 20px; border-radius: 25px; margin-bottom: 30px;">
+                <input type="text" id="new-name" placeholder="名前" style="font-size:16px; padding:12px; margin-bottom:10px;">
+                <input type="number" id="new-num" placeholder="番号" style="font-size:16px; padding:12px; margin-bottom:10px;">
+                <button onclick="saveContact()" class="btn btn-call" style="margin:0;">追加する</button>
             </div>
             <div id="contact-list" style="flex:1; overflow-y:auto;"></div>
         </div>
@@ -75,20 +100,19 @@
             <video id="remote-video" autoplay playsinline></video>
             <video id="local-video" autoplay playsinline muted></video>
             
-            <div id="calling-ui" class="calling-ui">
+            <div id="calling-ui" class="calling-info">
                 <div class="avatar">👤</div>
-                <div id="call-target-name" style="font-size:24px;">接続中...</div>
+                <div id="call-target-name" style="font-size:32px; font-weight:bold; margin-bottom:10px;">接続中</div>
+                <div style="color: var(--accent); letter-spacing: 2px; font-size: 14px;">CALLING...</div>
             </div>
 
-            <div class="call-controls">
-                <button id="toggle-video-btn" class="control-btn">🎥</button>
-                <button onclick="location.reload()" class="control-btn hangup">✕</button>
-                <button id="toggle-audio-btn" class="control-btn active">🎤</button>
+            <div class="controls">
+                <button id="toggle-video-btn" class="ctrl-btn">🎥</button>
+                <button onclick="location.reload()" class="ctrl-btn hangup">✕</button>
+                <button id="toggle-audio-btn" class="ctrl-btn active">🎤</button>
             </div>
         </div>
     </div>
-
-    
 
     <script src="https://cdn.jsdelivr.net/npm/@skyway-sdk/room/dist/skyway_room.js"></script>
     <script type="module">
@@ -113,7 +137,7 @@
         window.doLogin = () => signInWithEmailAndPassword(auth, email.value, password.value);
         window.doGoogleLogin = () => signInWithPopup(auth, provider);
         window.doLogout = () => signOut(auth);
-        window.toggleContacts = (show) => { document.getElementById('contact-sheet').style.display = show ? 'flex' : 'none'; };
+        window.toggleContacts = (show) => { document.getElementById('contact-modal').style.display = show ? 'flex' : 'none'; };
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -129,6 +153,12 @@
             }
         });
 
+        window.saveContact = async () => {
+            if(!newName.value || !newNum.value) return;
+            await addDoc(collection(db, "contacts"), { uid: auth.currentUser.uid, name: newName.value, num: newNum.value });
+            newName.value = ""; newNum.value = "";
+        };
+
         function syncData(uid) {
             onSnapshot(query(collection(db, "contacts"), where("uid", "==", uid)), s => {
                 contactList.innerHTML = "";
@@ -136,9 +166,21 @@
                     const d = doc.data();
                     const div = document.createElement('div');
                     div.className = 'list-item';
-                    div.innerHTML = `<b>${d.name}</b><small>${d.num}</small>`;
+                    div.innerHTML = `<div><div style="font-weight:bold; font-size:18px;">${d.name}</div><div style="color:#888; font-size:14px;">${d.num}</div></div><div style="font-size:24px;">📞</div>`;
                     div.onclick = () => { toggleContacts(false); startCall(d.num); };
                     contactList.appendChild(div);
+                });
+            });
+            onSnapshot(query(collection(db, "calls"), where("uid", "==", uid), orderBy("timestamp", "desc"), limit(5)), s => {
+                historyList.innerHTML = "";
+                s.forEach(doc => {
+                    const d = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'list-item';
+                    div.style.padding = "12px 18px";
+                    div.innerHTML = `<div><div style="font-weight:bold;">${d.target}</div></div><div style="font-size:18px;">${d.type==='video'?'🎥':'📞'}</div>`;
+                    div.onclick = () => startCall(d.target);
+                    historyList.appendChild(div);
                 });
             });
         }
@@ -150,16 +192,17 @@
             const room = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: myNum });
             const member = await room.join();
 
-            let localAudio, localVideo;
-            let videoPublication, audioPublication;
+            let localAudio, localVideo, videoPublication;
 
             startCall = async (target) => {
+                if(!target) return;
                 callScreen.style.display = 'flex';
+                await addDoc(collection(db, "calls"), { uid: auth.currentUser.uid, target, type: 'audio', timestamp: serverTimestamp() });
+                
                 const tRoom = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: target });
                 const tMember = await tRoom.join();
-                
                 localAudio = await SkyWayStreamFactory.createMicrophoneAudioStream();
-                audioPublication = await tMember.publish(localAudio);
+                await tMember.publish(localAudio);
 
                 tRoom.onStreamPublished.add(async (e) => {
                     const { stream } = await tMember.subscribe(e.publication.id);
@@ -171,7 +214,6 @@
                 });
             };
 
-            // ビデオ切り替えボタンの処理
             document.getElementById('toggle-video-btn').onclick = async function() {
                 if (!localVideo) {
                     localVideo = await SkyWayStreamFactory.createCameraVideoStream();
@@ -209,10 +251,13 @@
         const callScreen = document.getElementById('call-screen');
         const myNumDisplay = document.getElementById('my-num-display');
         const contactList = document.getElementById('contact-list');
+        const historyList = document.getElementById('history-list');
         const targetNumInput = document.getElementById('target-num-input');
         const remoteVideo = document.getElementById('remote-video');
         const callingUi = document.getElementById('calling-ui');
         const btnAudioCall = document.getElementById('btn-audio-call');
+        const newName = document.getElementById('new-name');
+        const newNum = document.getElementById('new-num');
     </script>
 </body>
 </html>
