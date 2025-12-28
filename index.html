@@ -3,48 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>本格 Phone App</title>
+    <title>NextGen Phone</title>
     <style>
-        :root { --main: #007bff; --bg: #0f0f0f; --card: #1c1c1e; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .phone-container { width: 350px; background: var(--card); border-radius: 40px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 2px solid #333; text-align: center; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: none; background: #2c2c2e; color: white; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 15px; margin: 5px 0; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
-        .btn-primary { background: var(--main); color: white; }
-        .btn-primary:hover { background: #0056b3; }
-        .btn-google { background: white; color: black; }
-        .btn-secondary { background: transparent; color: #888; text-decoration: underline; font-size: 14px; }
-        #app-content { display: none; }
-        .number-badge { background: #34c759; color: black; padding: 15px; border-radius: 15px; font-size: 32px; font-weight: 800; margin: 20px 0; letter-spacing: 2px; }
-        .video-box { position: relative; width: 100%; aspect-ratio: 3/4; background: #000; border-radius: 20px; margin-top: 15px; overflow: hidden; }
+        :root { --accent: #34c759; --bg: #000; --card: #1c1c1e; --text: #fff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        
+        .iphone-frame { width: 375px; height: 750px; background: var(--card); border-radius: 45px; position: relative; border: 8px solid #333; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 50px 100px rgba(0,0,0,0.8); }
+        .screen { flex: 1; padding: 30px; display: flex; flex-direction: column; align-items: center; transition: 0.5s; }
+        
+        /* タイポグラフィ */
+        h1 { font-size: 28px; font-weight: 700; margin-bottom: 30px; letter-spacing: -1px; }
+        .number-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .big-number { font-size: 42px; font-weight: 800; color: var(--accent); margin: 10px 0 30px; }
+
+        /* 入力エリア */
+        input { width: 100%; padding: 18px; margin: 8px 0; border-radius: 15px; border: none; background: #2c2c2e; color: white; font-size: 16px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus { background: #3a3a3c; box-shadow: 0 0 0 2px var(--accent); }
+
+        /* ボタン */
+        button { width: 100%; padding: 18px; margin: 10px 0; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; font-size: 17px; transition: 0.2s; }
+        .primary { background: var(--accent); color: white; }
+        .primary:active { transform: scale(0.98); opacity: 0.9; }
+        .google { background: white; color: black; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .text-link { background: transparent; color: #0a84ff; font-size: 14px; }
+
+        /* ビデオ通話レイアウト */
+        #video-overlay { position: absolute; inset: 0; background: #000; z-index: 10; display: none; }
         #remote-video { width: 100%; height: 100%; object-fit: cover; }
-        #local-video { position: absolute; top: 10px; right: 10px; width: 80px; height: 110px; border-radius: 10px; border: 1px solid #555; object-fit: cover; z-index: 2; background: #222; }
+        #local-video { position: absolute; top: 50px; right: 20px; width: 100px; height: 150px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.3); object-fit: cover; z-index: 11; }
+        .call-controls { position: absolute; bottom: 50px; width: 100%; display: flex; justify-content: center; z-index: 12; }
+        .hangup { width: 70px; height: 70px; border-radius: 50%; background: #ff3b30; color: white; font-size: 30px; line-height: 0; }
+
+        #auth-screen, #app-content { width: 100%; height: 100%; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-    <div class="phone-container">
-        <div id="auth-screen">
-            <h1>Sign In</h1>
-            <input type="email" id="email" placeholder="メールアドレス">
-            <input type="password" id="password" placeholder="パスワード">
-            <button onclick="handleEmailLogin()" class="btn-primary">ログイン</button>
-            <button onclick="handleEmailSignUp()" class="btn-secondary">新規アカウントを作成</button>
-            <hr style="border:0.5px solid #333; margin:20px 0;">
-            <button onclick="handleGoogleLogin()" class="btn-google">Googleでサインイン</button>
+    <div class="iphone-frame">
+        <div id="auth-screen" class="screen">
+            <h1>Phone App</h1>
+            <input type="email" id="email" placeholder="Email Address">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="handleEmailLogin()" class="primary">Sign In</button>
+            <button onclick="handleEmailSignUp()" class="text-link">Create Account</button>
+            <div style="margin: 20px 0; color: #444;">OR</div>
+            <button onclick="handleGoogleLogin()" class="google">Sign in with Google</button>
         </div>
 
-        <div id="app-content">
-            <div style="font-size: 14px; color: #888;">Your Phone Number</div>
-            <div class="number-badge" id="my-number">------</div>
+        <div id="app-content" class="screen" style="display:none;">
+            <div class="number-label">My Number</div>
+            <div class="big-number" id="my-number">------</div>
             
-            <input type="number" id="target-number" placeholder="相手の6桁番号を入力">
-            <button id="call-start" class="btn-primary">📞 発信する</button>
-            <button onclick="handleLogout()" class="btn-secondary" style="margin-top:10px;">ログアウト</button>
+            <input type="number" id="target-number" placeholder="Enter 6-digit number">
+            <button id="call-start" class="primary" style="border-radius: 50px;">📞 Call</button>
+            
+            <button onclick="handleLogout()" class="text-link" style="margin-top: auto; color: #ff453a;">Log Out</button>
+        </div>
 
-            <div class="video-box">
-                <video id="remote-video" autoplay playsinline></video>
-                <video id="local-video" autoplay playsinline muted></video>
+        <div id="video-overlay">
+            <video id="remote-video" autoplay playsinline></video>
+            <video id="local-video" autoplay playsinline muted></video>
+            <div class="call-controls">
+                <button onclick="location.reload()" class="hangup">✕</button>
             </div>
         </div>
     </div>
@@ -52,10 +72,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@skyway-sdk/room/dist/skyway_room.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } 
-        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // --- 設定情報 ---
         const firebaseConfig = {
             apiKey: "AIzaSyAqypcabvYQDHzxNnjJmbDMs-vbYXLPhI8",
             authDomain: "webt-f0724.firebaseapp.com",
@@ -65,93 +83,65 @@
             appId: "1:835151283262:web:a7efe3cc384fa1a61dfd6f"
         };
 
-        const SKYWAY_APP_ID = '697b5b5d-3f7c-4430-bd32-deb0ca2de936';
-        const SKYWAY_SECRET = 'wbcXuybOG1z0vei2ZIZmlM/TmFA7nH2KXxZHQdgFOXw=';
-
-        // --- Firebase初期化 ---
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // --- 認証関数をグローバルに公開 ---
-        window.handleGoogleLogin = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
-        
-        window.handleEmailSignUp = () => {
-            const email = document.getElementById('email').value;
-            const pw = document.getElementById('password').value;
-            if(!email || !pw) return alert("入力してください");
-            createUserWithEmailAndPassword(auth, email, pw)
-                .then(() => alert("アカウントを作成しました！"))
-                .catch(e => alert("作成失敗: " + e.message));
-        };
+        const APP_ID = '697b5b5d-3f7c-4430-bd32-deb0ca2de936';
+        const SECRET = 'wbcXuybOG1z0vei2ZIZmlM/TmFA7nH2KXxZHQdgFOXw=';
 
-        window.handleEmailLogin = () => {
-            const email = document.getElementById('email').value;
-            const pw = document.getElementById('password').value;
-            signInWithEmailAndPassword(auth, email, pw).catch(e => alert("ログイン失敗: " + e.message));
-        };
+        // 着信音の準備
+        const ringtone = new Audio('https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3');
+        ringtone.loop = true;
 
+        window.handleGoogleLogin = () => signInWithPopup(auth, provider);
+        window.handleEmailSignUp = () => createUserWithEmailAndPassword(auth, email.value, password.value).catch(e => alert(e.message));
+        window.handleEmailLogin = () => signInWithEmailAndPassword(auth, email.value, password.value).catch(e => alert("Login Error"));
         window.handleLogout = () => signOut(auth);
 
-        // --- ログイン状態の管理 ---
         onAuthStateChanged(auth, (user) => {
-            const authScreen = document.getElementById('auth-screen');
-            const appContent = document.getElementById('app-content');
             if (user) {
-                authScreen.style.display = 'none';
-                appContent.style.display = 'block';
-                // ユーザー固有のIDから数字を抽出して6桁の電話番号にする
-                const num = user.uid.replace(/\D/g, '').substring(0, 6) || "777888";
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'flex';
+                const num = user.uid.replace(/\D/g, '').substring(0, 6) || "123456";
                 document.getElementById('my-number').innerText = num;
+                // 待ち受け開始
+                startWait(num);
             } else {
-                authScreen.style.display = 'block';
-                appContent.style.display = 'none';
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('app-content').style.display = 'none';
             }
         });
 
-        // --- SkyWay通話ロジック ---
-        document.getElementById('call-start').onclick = async () => {
-            const target = document.getElementById('target-number').value;
-            if(!target) return alert("相手の番号を入力してください");
+        // 待ち受け・通話ロジック
+        async function startWait(myNum) {
+            const { SkyWayContext, SkyWayRoom, SkyWayStreamFactory } = skyway_room;
+            const context = await SkyWayContext.Create(APP_ID, { auth: { type: 'p2p', secretKey: SECRET } });
+            const room = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: myNum });
+            
+            // 入室があったら音を鳴らす
+            room.onMemberJoined.add(() => ringtone.play());
 
-            try {
-                const { SkyWayContext, SkyWayRoom, SkyWayStreamFactory } = skyway_room;
+            document.getElementById('call-start').onclick = async () => {
+                const target = document.getElementById('target-number').value;
+                if(!target) return;
                 
-                // コンテキスト作成
-                const context = await SkyWayContext.Create(SKYWAY_APP_ID, {
-                    auth: { type: 'p2p', secretKey: SKYWAY_SECRET }
-                });
-
-                // ルーム作成（相手の番号をルーム名にする）
-                const room = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: target });
-                const member = await room.join();
-
-                // 自分の映像・音声を取得
+                document.getElementById('video-overlay').style.display = 'block';
+                const targetRoom = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: target });
+                const member = await targetRoom.join();
+                
                 const { audio, video } = await SkyWayStreamFactory.createMicrophoneAudioAndCameraStream();
                 video.attach(document.getElementById('local-video'));
-
-                // 公開
                 await member.publish(audio);
                 await member.publish(video);
 
-                // 相手の映像を受信
-                const subscribe = async (publication) => {
-                    if (publication.publisher.id === member.id) return;
-                    const { stream } = await member.subscribe(publication.id);
-                    if (stream.contentType === 'video') {
-                        stream.attach(document.getElementById('remote-video'));
-                    }
-                };
-
-                room.publications.forEach(subscribe);
-                room.onStreamPublished.add((e) => subscribe(e.publication));
-
-                alert(target + " 番へ発信中...");
-            } catch (err) {
-                console.error(err);
-                alert("通話開始エラー: 通信制限やドメイン設定を確認してください。");
-            }
-        };
+                targetRoom.onStreamPublished.add(async (e) => {
+                    const { stream } = await member.subscribe(e.publication.id);
+                    if (stream.contentType === 'video') stream.attach(document.getElementById('remote-video'));
+                    ringtone.pause();
+                });
+            };
+        }
     </script>
 </body>
 </html>
