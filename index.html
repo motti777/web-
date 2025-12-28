@@ -1,1 +1,157 @@
-i
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本格 Phone App</title>
+    <style>
+        :root { --main: #007bff; --bg: #0f0f0f; --card: #1c1c1e; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .phone-container { width: 350px; background: var(--card); border-radius: 40px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 2px solid #333; text-align: center; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: none; background: #2c2c2e; color: white; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 15px; margin: 5px 0; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .btn-primary { background: var(--main); color: white; }
+        .btn-primary:hover { background: #0056b3; }
+        .btn-google { background: white; color: black; }
+        .btn-secondary { background: transparent; color: #888; text-decoration: underline; font-size: 14px; }
+        #app-content { display: none; }
+        .number-badge { background: #34c759; color: black; padding: 15px; border-radius: 15px; font-size: 32px; font-weight: 800; margin: 20px 0; letter-spacing: 2px; }
+        .video-box { position: relative; width: 100%; aspect-ratio: 3/4; background: #000; border-radius: 20px; margin-top: 15px; overflow: hidden; }
+        #remote-video { width: 100%; height: 100%; object-fit: cover; }
+        #local-video { position: absolute; top: 10px; right: 10px; width: 80px; height: 110px; border-radius: 10px; border: 1px solid #555; object-fit: cover; z-index: 2; background: #222; }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        <div id="auth-screen">
+            <h1>Sign In</h1>
+            <input type="email" id="email" placeholder="メールアドレス">
+            <input type="password" id="password" placeholder="パスワード">
+            <button onclick="handleEmailLogin()" class="btn-primary">ログイン</button>
+            <button onclick="handleEmailSignUp()" class="btn-secondary">新規アカウントを作成</button>
+            <hr style="border:0.5px solid #333; margin:20px 0;">
+            <button onclick="handleGoogleLogin()" class="btn-google">Googleでサインイン</button>
+        </div>
+
+        <div id="app-content">
+            <div style="font-size: 14px; color: #888;">Your Phone Number</div>
+            <div class="number-badge" id="my-number">------</div>
+            
+            <input type="number" id="target-number" placeholder="相手の6桁番号を入力">
+            <button id="call-start" class="btn-primary">📞 発信する</button>
+            <button onclick="handleLogout()" class="btn-secondary" style="margin-top:10px;">ログアウト</button>
+
+            <div class="video-box">
+                <video id="remote-video" autoplay playsinline></video>
+                <video id="local-video" autoplay playsinline muted></video>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@skyway-sdk/room/dist/skyway_room.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // --- 設定情報 ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAqypcabvYQDHzxNnjJmbDMs-vbYXLPhI8",
+            authDomain: "webt-f0724.firebaseapp.com",
+            projectId: "webt-f0724",
+            storageBucket: "webt-f0724.firebasestorage.app",
+            messagingSenderId: "835151283262",
+            appId: "1:835151283262:web:a7efe3cc384fa1a61dfd6f"
+        };
+
+        const SKYWAY_APP_ID = '697b5b5d-3f7c-4430-bd32-deb0ca2de936';
+        const SKYWAY_SECRET = 'wbcXuybOG1z0vei2ZIZmlM/TmFA7nH2KXxZHQdgFOXw=';
+
+        // --- Firebase初期化 ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // --- 認証関数をグローバルに公開 ---
+        window.handleGoogleLogin = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
+        
+        window.handleEmailSignUp = () => {
+            const email = document.getElementById('email').value;
+            const pw = document.getElementById('password').value;
+            if(!email || !pw) return alert("入力してください");
+            createUserWithEmailAndPassword(auth, email, pw)
+                .then(() => alert("アカウントを作成しました！"))
+                .catch(e => alert("作成失敗: " + e.message));
+        };
+
+        window.handleEmailLogin = () => {
+            const email = document.getElementById('email').value;
+            const pw = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, email, pw).catch(e => alert("ログイン失敗: " + e.message));
+        };
+
+        window.handleLogout = () => signOut(auth);
+
+        // --- ログイン状態の管理 ---
+        onAuthStateChanged(auth, (user) => {
+            const authScreen = document.getElementById('auth-screen');
+            const appContent = document.getElementById('app-content');
+            if (user) {
+                authScreen.style.display = 'none';
+                appContent.style.display = 'block';
+                // ユーザー固有のIDから数字を抽出して6桁の電話番号にする
+                const num = user.uid.replace(/\D/g, '').substring(0, 6) || "777888";
+                document.getElementById('my-number').innerText = num;
+            } else {
+                authScreen.style.display = 'block';
+                appContent.style.display = 'none';
+            }
+        });
+
+        // --- SkyWay通話ロジック ---
+        document.getElementById('call-start').onclick = async () => {
+            const target = document.getElementById('target-number').value;
+            if(!target) return alert("相手の番号を入力してください");
+
+            try {
+                const { SkyWayContext, SkyWayRoom, SkyWayStreamFactory } = skyway_room;
+                
+                // コンテキスト作成
+                const context = await SkyWayContext.Create(SKYWAY_APP_ID, {
+                    auth: { type: 'p2p', secretKey: SKYWAY_SECRET }
+                });
+
+                // ルーム作成（相手の番号をルーム名にする）
+                const room = await SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: target });
+                const member = await room.join();
+
+                // 自分の映像・音声を取得
+                const { audio, video } = await SkyWayStreamFactory.createMicrophoneAudioAndCameraStream();
+                video.attach(document.getElementById('local-video'));
+
+                // 公開
+                await member.publish(audio);
+                await member.publish(video);
+
+                // 相手の映像を受信
+                const subscribe = async (publication) => {
+                    if (publication.publisher.id === member.id) return;
+                    const { stream } = await member.subscribe(publication.id);
+                    if (stream.contentType === 'video') {
+                        stream.attach(document.getElementById('remote-video'));
+                    }
+                };
+
+                room.publications.forEach(subscribe);
+                room.onStreamPublished.add((e) => subscribe(e.publication));
+
+                alert(target + " 番へ発信中...");
+            } catch (err) {
+                console.error(err);
+                alert("通話開始エラー: 通信制限やドメイン設定を確認してください。");
+            }
+        };
+    </script>
+</body>
+</html>
