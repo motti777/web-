@@ -3,59 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WebCall Ultra - Full Edition</title>
+    <title>WebCall Ultra</title>
+    <script src="https://cdn.jsdelivr.net/npm/@skyway-sdk/room/dist/skyway_room.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #00c300; --bg: #f2f4f6; --surface: #ffffff; --my-bubble: #8de055; --danger: #ff4b4b; --admin: #673ab7; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background: #222; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
-        
         .app-container { width: 100%; max-width: 480px; height: 100%; background: var(--bg); position: relative; display: flex; flex-direction: column; }
-        
-        /* ログイン */
         #auth-overlay { position: absolute; inset: 0; background: var(--surface); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
         .login-btn { background: #fff; border: 1px solid #ddd; padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-
-        /* ヘッダー */
         .header { background: #fff; padding: 15px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #eee; }
         .my-avatar { width: 45px; height: 45px; background: #eee; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid var(--primary); cursor: pointer; }
         .id-badge { background: var(--primary); color: white; padding: 2px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; }
-
-        /* リスト */
         .main-content { flex: 1; overflow-y: auto; padding: 10px; }
-        .list-item { background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; position: relative; }
-        .admin-tag { position: absolute; right: 10px; top: 10px; font-size: 10px; background: var(--admin); color: white; padding: 2px 5px; border-radius: 4px; }
-
-        /* チャット */
+        .list-item { background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
         #chat-view { position: absolute; inset: 0; background: #8cabd0; z-index: 2000; display: none; flex-direction: column; }
-        .chat-header { background: #fff; padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #ddd; }
+        .chat-header { background: #fff; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
         .chat-msgs { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
-        .msg { max-width: 80%; padding: 10px 14px; border-radius: 15px; font-size: 15px; word-break: break-all; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .msg.right { align-self: flex-end; background: var(--my-bubble); border-bottom-right-radius: 2px; }
-        .msg.left { align-self: flex-start; background: #fff; border-bottom-left-radius: 2px; }
-        .msg.is-deleted { opacity: 0.6; font-style: italic; }
-        .admin-msg-info { display: block; font-size: 10px; color: var(--danger); font-weight: bold; margin-bottom: 2px; }
-
-        /* 通話 */
+        .msg { max-width: 80%; padding: 10px 14px; border-radius: 15px; font-size: 15px; word-break: break-all; }
+        .msg.right { align-self: flex-end; background: var(--my-bubble); }
+        .msg.left { align-self: flex-start; background: #fff; }
         #call-ui { position: absolute; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: space-around; color: #fff; }
         video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
-        .call-controls { display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 10; width: 100%; }
-        .hangup-btn { width: 70px; height: 70px; background: var(--danger); border-radius: 50%; border: none; color: white; font-size: 30px; cursor: pointer; }
-
-        /* モーダル */
-        #edit-modal { position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 4000; display: none; align-items: center; justify-content: center; }
-        .modal-card { background: #fff; width: 90%; max-height: 85vh; overflow-y: auto; padding: 25px; border-radius: 25px; text-align: center; }
-        .admin-box { margin-top: 20px; padding: 15px; border: 2px dashed var(--admin); border-radius: 15px; text-align: left; display: none; }
+        #edit-modal { position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 4000; display: none; align-items: center; justify-content: center; }
+        .modal-card { background: #fff; width: 90%; padding: 25px; border-radius: 20px; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
+        .admin-area { display: none; border: 2px dashed var(--admin); padding: 10px; margin-top: 10px; text-align: left; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         <div id="auth-overlay">
-            <h1 style="color:var(--primary); margin-bottom:10px;">WebCall Ultra</h1>
-            <p style="color:#666; margin-bottom:30px;">高機能ウェブ通話アプリ</p>
-            <button class="login-btn" onclick="doLogin()">Googleアカウントでログイン</button>
+            <h1>WebCall Ultra</h1>
+            <button class="login-btn" onclick="doLogin()">Googleログイン</button>
         </div>
 
         <div class="header">
@@ -64,66 +46,56 @@
                 <b id="my-name-ui">読み込み中...</b><br>
                 <span class="id-badge" id="my-id-ui">ID: ------</span>
             </div>
-            <button onclick="addFriend()" style="background:none; border:none; font-size:26px; color:var(--primary); cursor:pointer;">➕</button>
+            <button onclick="addFriend()" style="background:none; border:none; font-size:24px; color:var(--primary);">➕</button>
         </div>
 
         <div class="main-content" id="contact-list"></div>
 
         <div id="chat-view">
             <div class="chat-header">
-                <button onclick="closeChat()" style="border:none; background:none; font-size:22px; padding:10px;">❮</button>
+                <button onclick="closeChat()" style="border:none; background:none; font-size:20px;">❮</button>
                 <b id="chat-title">Chat</b>
-                <div style="display:flex; gap:15px; margin-right:15px;">
-                    <span onclick="startCall('audio')" style="font-size:24px; cursor:pointer;">📞</span>
-                    <span onclick="startCall('video')" style="font-size:24px; cursor:pointer;">🎥</span>
+                <div style="display:flex; gap:15px;">
+                    <span onclick="startCall('audio')" style="cursor:pointer;">📞</span>
+                    <span onclick="startCall('video')" style="cursor:pointer;">🎥</span>
                 </div>
             </div>
             <div class="chat-msgs" id="chat-msgs"></div>
-            <div style="padding:15px; background:#fff; display:flex; gap:10px; border-top:1px solid #eee;">
-                <input type="text" id="msg-input" placeholder="メッセージを入力..." style="margin:0; border:none; background:#f0f0f0;">
-                <button onclick="sendMsg()" style="border:none; background:none; color:var(--primary); font-weight:bold; font-size:16px;">送信</button>
+            <div style="padding:10px; background:#fff; display:flex; gap:10px;">
+                <input type="text" id="msg-input" placeholder="メッセージ..." onkeydown="if(event.key==='Enter')sendMsg()">
+                <button onclick="sendMsg()" style="border:none; background:none; color:var(--primary); font-weight:bold;">送信</button>
             </div>
         </div>
 
         <div id="call-ui">
             <video id="remote-video" autoplay playsinline></video>
-            <div style="text-align:center; z-index:10; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">
-                <div id="call-avatar-ui" style="font-size:80px; margin-bottom:10px;">👤</div>
-                <h2 id="call-name-ui">Partner</h2>
+            <div style="text-align:center; z-index:10;">
+                <h2 id="call-partner-name">Partner</h2>
                 <p id="call-status">接続中...</p>
             </div>
-            <div class="call-controls">
-                <button class="hangup-btn" onclick="endCall()">✕</button>
-            </div>
+            <button onclick="location.reload()" style="padding:15px 30px; background:var(--danger); color:#fff; border:none; border-radius:30px; z-index:10;">終了</button>
         </div>
 
         <div id="edit-modal">
             <div class="modal-card">
-                <h3>プロフィール設定</h3>
-                <div class="my-avatar" id="edit-emoji" onclick="cycleEmoji()" style="margin:20px auto; width:80px; height:80px; font-size:40px;">👤</div>
+                <h3>設定</h3>
+                <div class="my-avatar" id="edit-emoji" onclick="cycleEmoji()" style="margin:10px auto; width:60px; height:60px; font-size:30px;">👤</div>
                 <input type="text" id="edit-name" placeholder="名前">
-
-                <div id="admin-section" class="admin-box">
-                    <b style="color:var(--admin)">🛡️ 管理者専用パネル</b>
-                    <p style="font-size:11px; color:#666; margin:5px 0;">自分のIDを自由に変更できます：</p>
-                    <input type="text" id="edit-id" placeholder="新しい6桁のID" maxlength="6">
-                    <p style="font-size:11px; font-weight:bold; margin-top:10px;">登録済みユーザー全リスト：</p>
-                    <div id="admin-user-list" style="font-size:12px; background:#f0f0f0; padding:10px; border-radius:8px; max-height:120px; overflow-y:auto; margin-top:5px;"></div>
+                <div id="admin-box" class="admin-area">
+                    <b style="color:var(--admin)">管理者設定</b>
+                    <input type="text" id="edit-id" placeholder="新しいID(6桁)" maxlength="6">
+                    <div id="all-users" style="font-size:10px; max-height:80px; overflow:auto; margin-top:5px;"></div>
                 </div>
-
-                <button onclick="saveProfile()" style="width:100%; padding:15px; background:var(--primary); color:#fff; border:none; border-radius:12px; font-weight:bold; margin-top:20px; font-size:16px;">設定を保存</button>
-                <button onclick="document.getElementById('edit-modal').style.display='none'" style="background:none; border:none; color:#888; margin-top:15px;">閉じる</button>
+                <button onclick="saveProfile()" style="width:100%; padding:15px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-weight:bold; margin-top:10px;">保存</button>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@skyway-sdk/room/dist/skyway_room.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Firebase初期化
         const firebaseConfig = { apiKey: "AIzaSyAqypcabvYQDHzxNnjJmbDMs-vbYXLPhI8", authDomain: "webt-f0724.firebaseapp.com", projectId: "webt-f0724", storageBucket: "webt-f0724.firebasestorage.app", appId: "1:835151283262:web:a7efe3cc384fa1a61dfd6f" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -131,10 +103,7 @@
         const SKYWAY_ID = '697b5b5d-3f7c-4430-bd32-deb0ca2de936';
         const ADMIN_EMAIL = "mottikoyama@gmail.com";
 
-        let my = null;
-        let target = null;
-        let skywayCtx = null;
-        const emojis = ["👤","🐱","🐶","🦊","🐻","🐼","🦁","🤖"];
+        let my = null, target = null, context = null;
 
         window.doLogin = () => signInWithPopup(auth, new GoogleAuthProvider());
 
@@ -148,202 +117,138 @@
                     my = snap.docs[0].data();
                 } else {
                     const newId = Math.floor(100000 + Math.random() * 900000).toString();
-                    my = { uid: user.uid, num: newId, name: user.displayName || "ユーザー", emoji: "👤", email: user.email };
+                    my = { uid: user.uid, num: newId, name: user.displayName || "GUEST", emoji: "👤" };
                     await setDoc(doc(db, "users", newId), my);
                 }
 
-                // 管理者チェック
                 if (user.email === ADMIN_EMAIL) {
-                    document.getElementById('admin-section').style.display = 'block';
-                    loadAdminData();
+                    document.getElementById('admin-box').style.display = 'block';
+                    loadUsers();
                 }
 
-                updateMainUI();
-                syncContacts();
+                updateUI();
                 listenForCalls();
-                // SkyWay Contextを事前に作成
-                skywayCtx = await skyway_room.SkyWayContext.Create(SKYWAY_ID);
+                syncContacts();
+                // SkyWayの初期化
+                if (window.skyway_room) {
+                    context = await skyway_room.SkyWayContext.Create(SKYWAY_ID);
+                }
             }
         });
 
-        async function loadAdminData() {
-            const allUsers = await getDocs(collection(db, "users"));
-            let html = "";
-            allUsers.forEach(d => {
-                const u = d.data();
-                html += `<div style="border-bottom:1px solid #ddd; padding:4px 0;">ID: ${u.num} | ${u.name}</div>`;
-            });
-            document.getElementById('admin-user-list').innerHTML = html;
+        async function loadUsers() {
+            const s = await getDocs(collection(db, "users"));
+            let h = ""; s.forEach(d => h += `<div>${d.data().num}: ${d.data().name}</div>`);
+            document.getElementById('all-users').innerHTML = h;
         }
 
-        function updateMainUI() {
+        function updateUI() {
             document.getElementById('my-name-ui').innerText = my.name;
             document.getElementById('my-id-ui').innerText = "ID: " + my.num;
             document.getElementById('my-avatar-ui').innerText = my.emoji;
         }
 
-        window.openEdit = () => {
-            document.getElementById('edit-name').value = my.name;
-            document.getElementById('edit-emoji').innerText = my.emoji;
-            if (auth.currentUser.email === ADMIN_EMAIL) {
-                document.getElementById('edit-id').value = my.num;
-            }
-            document.getElementById('edit-modal').style.display = 'flex';
-        };
-
         window.saveProfile = async () => {
-            const newName = document.getElementById('edit-name').value || "名無し";
-            const newEmoji = document.getElementById('edit-emoji').innerText;
             const newId = document.getElementById('edit-id').value;
-
-            // ID変更ロジック（管理者のみ）
             if (auth.currentUser.email === ADMIN_EMAIL && newId && newId !== my.num) {
-                if (!/^\d{6}$/.test(newId)) return alert("IDは6桁の数字にしてください");
-                const exist = await getDoc(doc(db, "users", newId));
-                if (exist.exists()) return alert("そのIDは既に使われています");
-
                 await deleteDoc(doc(db, "users", my.num));
                 my.num = newId;
             }
-
-            my.name = newName;
-            my.emoji = newEmoji;
-            my.email = auth.currentUser.email;
+            my.name = document.getElementById('edit-name').value;
+            my.emoji = document.getElementById('edit-emoji').innerText;
             await setDoc(doc(db, "users", my.num), my);
             location.reload();
         };
 
-        window.addFriend = async () => {
-            const id = prompt("追加したい相手のIDを入力してください");
-            if (id && id !== my.num) {
-                const d = await getDoc(doc(db, "users", id));
-                if (d.exists()) {
-                    await setDoc(doc(db, "contacts", `${my.num}_${id}`), { owner: my.num, target: id });
-                    alert(d.data().name + " さんを追加しました。");
-                } else alert("ユーザーが見つかりません。");
-            }
-        };
-
-        function syncContacts() {
-            onSnapshot(query(collection(db, "contacts"), where("owner", "==", my.num)), async (s) => {
-                const list = document.getElementById('contact-list');
-                list.innerHTML = "";
-                for (const c of s.docs) {
-                    const udSnap = await getDoc(doc(db, "users", c.data().target));
-                    if (udSnap.exists()) {
-                        const ud = udSnap.data();
-                        const div = document.createElement('div');
-                        div.className = 'list-item';
-                        div.innerHTML = `<div class="my-avatar">${ud.emoji}</div><div><b>${ud.name}</b><br><small>ID: ${ud.num}</small></div>`;
-                        if(ud.email === ADMIN_EMAIL) div.innerHTML += `<span class="admin-tag">公式</span>`;
-                        div.onclick = () => openChat(ud);
-                        list.appendChild(div);
-                    }
-                }
-            });
-        }
-
-        window.openChat = (u) => {
-            target = u;
-            document.getElementById('chat-title').innerText = u.name;
-            document.getElementById('chat-view').style.display = 'flex';
-            const rid = [my.num, u.num].sort().join("_");
-            
-            onSnapshot(query(collection(db, "messages"), where("room", "==", rid), orderBy("time", "asc")), (snap) => {
-                const box = document.getElementById('chat-msgs');
-                box.innerHTML = "";
-                snap.forEach(d => {
-                    const data = d.data();
-                    const el = document.createElement('div');
-                    el.className = `msg ${data.sender === my.num ? 'right' : 'left'}`;
-                    
-                    if (data.isDeleted) {
-                        if (auth.currentUser.email === ADMIN_EMAIL) {
-                            el.innerHTML = `<span class="admin-msg-info">⚠ 削除された内容(管理者閲覧中):</span>${data.text}`;
-                            el.classList.add('is-deleted');
-                        } else {
-                            el.innerText = "メッセージは削除されました";
-                            el.classList.add('is-deleted');
-                        }
-                    } else {
-                        el.innerText = data.text;
-                        // 自分のメッセージなら長押し/クリックで削除可能にする
-                        if (data.sender === my.num) {
-                            el.onclick = () => { if(confirm("消去しますか？")) updateDoc(doc(db, "messages", d.id), {isDeleted: true}); };
-                        }
-                    }
-                    box.appendChild(el);
-                });
-                box.scrollTop = box.scrollHeight;
-            });
-        };
-
         window.sendMsg = async () => {
-            const i = document.getElementById('msg-input');
-            if (!i.value) return;
+            const input = document.getElementById('msg-input');
+            if (!input.value || !target) return;
             const rid = [my.num, target.num].sort().join("_");
-            await addDoc(collection(db, "messages"), { 
-                room: rid, sender: my.num, text: i.value, time: serverTimestamp(), isDeleted: false 
+            await addDoc(collection(db, "messages"), {
+                room: rid, sender: my.num, text: input.value, time: serverTimestamp()
             });
-            i.value = "";
+            input.value = "";
         };
 
         window.startCall = async (mode) => {
             document.getElementById('call-ui').style.display = 'flex';
-            document.getElementById('call-name-ui').innerText = target.name;
-            document.getElementById('call-avatar-ui').innerText = target.emoji;
-            document.getElementById('call-status').innerText = "呼び出し中...";
-
-            await setDoc(doc(db, "calls", target.num), { 
-                from: my.num, fromName: my.name, fromEmoji: my.emoji, type: mode, ts: Date.now() 
-            });
-            setupSkyWay(target.num, mode);
+            document.getElementById('call-partner-name').innerText = target.name;
+            await setDoc(doc(db, "calls", target.num), { from: my.num, name: my.name, type: mode, ts: Date.now() });
+            initCall(target.num, mode);
         };
 
         function listenForCalls() {
-            onSnapshot(doc(db, "calls", my.num), async (snap) => {
-                if (snap.exists()) {
-                    const data = snap.data();
-                    if (Date.now() - data.ts < 30000) { // 30秒以内の着信のみ
-                        if (confirm(`${data.fromName} さんから${data.type==='video'?'ビデオ':''}通話。出ますか？`)) {
-                            document.getElementById('call-ui').style.display = 'flex';
-                            document.getElementById('call-name-ui').innerText = data.fromName;
-                            document.getElementById('call-avatar-ui').innerText = data.fromEmoji;
-                            setupSkyWay(my.num, data.type);
-                        }
+            onSnapshot(doc(db, "calls", my.num), async (s) => {
+                if (s.exists() && Date.now() - s.data().ts < 30000) {
+                    if (confirm(s.data().name + "から着信。出ますか？")) {
+                        document.getElementById('call-ui').style.display = 'flex';
+                        initCall(my.num, s.data().type);
                     }
                     await deleteDoc(doc(db, "calls", my.num));
                 }
             });
         }
 
-        async function setupSkyWay(roomName, mode) {
-            const { SkyWayRoom, SkyWayStreamFactory } = skyway_room;
-            const room = await SkyWayRoom.FindOrCreate(skywayCtx, { type: 'p2p', name: roomName });
-            const member = await room.join();
-
-            const audio = await SkyWayStreamFactory.createMicrophoneAudioStream();
-            await member.publish(audio);
-
+        async function initCall(rName, mode) {
+            const room = await skyway_room.SkyWayRoom.FindOrCreate(context, { type: 'p2p', name: rName });
+            const me = await room.join();
+            const audio = await skyway_room.SkyWayStreamFactory.createMicrophoneAudioStream();
+            await me.publish(audio);
             if (mode === 'video') {
-                const video = await SkyWayStreamFactory.createCameraVideoStream();
-                await member.publish(video);
+                const video = await skyway_room.SkyWayStreamFactory.createCameraVideoStream();
+                await me.publish(video);
             }
-
             room.onStreamPublished.add(async (e) => {
-                const { stream } = await member.subscribe(e.publication.id);
-                if (stream.contentType === 'video') {
-                    stream.attach(document.getElementById('remote-video'));
-                }
+                const { stream } = await me.subscribe(e.publication.id);
+                if (stream.contentType === 'video') stream.attach(document.getElementById('remote-video'));
                 document.getElementById('call-status').innerText = "通話中";
             });
         }
 
-        window.endCall = () => location.reload();
+        // --- 共通パーツ ---
+        window.openEdit = () => {
+            document.getElementById('edit-name').value = my.name;
+            document.getElementById('edit-emoji').innerText = my.emoji;
+            document.getElementById('edit-modal').style.display = 'flex';
+        };
+        window.addFriend = async () => {
+            const id = prompt("相手のID入力");
+            if(id) await setDoc(doc(db, "contacts", `${my.num}_${id}`), { owner: my.num, target: id });
+        };
+        function syncContacts() {
+            onSnapshot(query(collection(db, "contacts"), where("owner", "==", my.num)), async (s) => {
+                const list = document.getElementById('contact-list'); list.innerHTML = "";
+                for (const c of s.docs) {
+                    const ud = (await getDoc(doc(db, "users", c.data().target))).data();
+                    if(ud) {
+                        const d = document.createElement('div'); d.className = 'list-item';
+                        d.innerHTML = `<div>${ud.emoji}</div><div><b>${ud.name}</b><br><small>${ud.num}</small></div>`;
+                        d.onclick = () => {
+                            target = ud;
+                            document.getElementById('chat-view').style.display = 'flex';
+                            document.getElementById('chat-title').innerText = ud.name;
+                            const rid = [my.num, ud.num].sort().join("_");
+                            onSnapshot(query(collection(db, "messages"), where("room", "==", rid), orderBy("time", "asc")), (ms) => {
+                                const box = document.getElementById('chat-msgs'); box.innerHTML = "";
+                                ms.forEach(m => {
+                                    const el = document.createElement('div');
+                                    el.className = `msg ${m.data().sender === my.num ? 'right' : 'left'}`;
+                                    el.innerText = m.data().text;
+                                    box.appendChild(el);
+                                });
+                                box.scrollTop = box.scrollHeight;
+                            });
+                        };
+                        list.appendChild(d);
+                    }
+                }
+            });
+        }
         window.closeChat = () => document.getElementById('chat-view').style.display = 'none';
         window.cycleEmoji = () => {
             const el = document.getElementById('edit-emoji');
-            el.innerText = emojis[(emojis.indexOf(el.innerText)+1)%emojis.length];
+            const ems = ["👤","🐱","🐶","🦊","🐻"];
+            el.innerText = ems[(ems.indexOf(el.innerText)+1)%ems.length];
         };
     </script>
 </body>
