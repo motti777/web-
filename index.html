@@ -11,25 +11,38 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background: #222; display: flex; justify-content: center; height: 100vh; overflow: hidden; }
         .app-container { width: 100%; max-width: 480px; height: 100%; background: var(--bg); position: relative; display: flex; flex-direction: column; }
+        
+        /* ログインオーバーレイ */
         #auth-overlay { position: absolute; inset: 0; background: var(--surface); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
         .login-btn { background: #fff; border: 1px solid #ddd; padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        /* ヘッダー */
         .header { background: #fff; padding: 15px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #eee; }
         .my-avatar { width: 45px; height: 45px; background: #eee; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid var(--primary); cursor: pointer; }
         .id-badge { background: var(--primary); color: white; padding: 2px 8px; border-radius: 8px; font-size: 12px; font-weight: bold; }
+
+        /* リスト */
         .main-content { flex: 1; overflow-y: auto; padding: 10px; }
         .list-item { background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+
+        /* チャット画面 */
         #chat-view { position: absolute; inset: 0; background: #8cabd0; z-index: 2000; display: none; flex-direction: column; }
         .chat-header { background: #fff; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
         .chat-msgs { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
         .msg { max-width: 80%; padding: 10px 14px; border-radius: 15px; font-size: 15px; word-break: break-all; }
         .msg.right { align-self: flex-end; background: var(--my-bubble); }
         .msg.left { align-self: flex-start; background: #fff; }
+        
+        /* 通話画面 */
         #call-ui { position: absolute; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: space-around; color: #fff; }
         video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
+
+        /* 設定モーダル */
         #edit-modal { position: absolute; inset: 0; background: rgba(0,0,0,0.5); z-index: 4000; display: none; align-items: center; justify-content: center; }
-        .modal-card { background: #fff; width: 90%; padding: 25px; border-radius: 20px; }
+        .modal-card { background: #fff; width: 90%; padding: 25px; border-radius: 20px; text-align: center; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
         .admin-area { display: none; border: 2px dashed var(--admin); padding: 10px; margin-top: 10px; text-align: left; }
+        .logout-btn { color: var(--danger); margin-top: 20px; cursor: pointer; font-weight: bold; display: block; }
     </style>
 </head>
 <body>
@@ -37,7 +50,8 @@
     <div class="app-container">
         <div id="auth-overlay">
             <h1>WebCall Ultra</h1>
-            <button class="login-btn" onclick="doLogin()">Googleログイン</button>
+            <p>管理者: mottikoyama</p>
+            <button class="login-btn" onclick="doLogin()">Googleでログイン</button>
         </div>
 
         <div class="header">
@@ -69,10 +83,7 @@
 
         <div id="call-ui">
             <video id="remote-video" autoplay playsinline></video>
-            <div style="text-align:center; z-index:10;">
-                <h2 id="call-partner-name">Partner</h2>
-                <p id="call-status">接続中...</p>
-            </div>
+            <div style="text-align:center; z-index:10;"><h2 id="call-name">Partner</h2><p id="call-status">接続中...</p></div>
             <button onclick="location.reload()" style="padding:15px 30px; background:var(--danger); color:#fff; border:none; border-radius:30px; z-index:10;">終了</button>
         </div>
 
@@ -84,16 +95,17 @@
                 <div id="admin-box" class="admin-area">
                     <b style="color:var(--admin)">管理者設定</b>
                     <input type="text" id="edit-id" placeholder="新しいID(6桁)" maxlength="6">
-                    <div id="all-users" style="font-size:10px; max-height:80px; overflow:auto; margin-top:5px;"></div>
+                    <div id="all-users" style="font-size:10px; max-height:80px; overflow:auto;"></div>
                 </div>
                 <button onclick="saveProfile()" style="width:100%; padding:15px; background:var(--primary); color:#fff; border:none; border-radius:10px; font-weight:bold; margin-top:10px;">保存</button>
+                <span class="logout-btn" onclick="doLogout()">ログアウト</span>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, query, where, orderBy, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAqypcabvYQDHzxNnjJmbDMs-vbYXLPhI8", authDomain: "webt-f0724.firebaseapp.com", projectId: "webt-f0724", storageBucket: "webt-f0724.firebasestorage.app", appId: "1:835151283262:web:a7efe3cc384fa1a61dfd6f" };
@@ -106,13 +118,19 @@
         let my = null, target = null, context = null;
 
         window.doLogin = () => signInWithPopup(auth, new GoogleAuthProvider());
+        
+        // ログアウト関数
+        window.doLogout = () => {
+            if(confirm("ログアウトしますか？")) {
+                signOut(auth).then(() => location.reload());
+            }
+        };
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 document.getElementById('auth-overlay').style.display = 'none';
                 const q = query(collection(db, "users"), where("uid", "==", user.uid));
                 const snap = await getDocs(q);
-                
                 if (!snap.empty) {
                     my = snap.docs[0].data();
                 } else {
@@ -125,14 +143,12 @@
                     document.getElementById('admin-box').style.display = 'block';
                     loadUsers();
                 }
-
                 updateUI();
                 listenForCalls();
                 syncContacts();
-                // SkyWayの初期化
-                if (window.skyway_room) {
-                    context = await skyway_room.SkyWayContext.Create(SKYWAY_ID);
-                }
+                if (window.skyway_room) context = await skyway_room.SkyWayContext.Create(SKYWAY_ID);
+            } else {
+                document.getElementById('auth-overlay').style.display = 'flex';
             }
         });
 
@@ -164,15 +180,17 @@
             const input = document.getElementById('msg-input');
             if (!input.value || !target) return;
             const rid = [my.num, target.num].sort().join("_");
-            await addDoc(collection(db, "messages"), {
-                room: rid, sender: my.num, text: input.value, time: serverTimestamp()
-            });
-            input.value = "";
+            try {
+                await addDoc(collection(db, "messages"), {
+                    room: rid, sender: my.num, text: input.value, time: serverTimestamp()
+                });
+                input.value = "";
+            } catch (e) { alert("送信エラー。AdGuardを確認してください"); }
         };
 
         window.startCall = async (mode) => {
             document.getElementById('call-ui').style.display = 'flex';
-            document.getElementById('call-partner-name').innerText = target.name;
+            document.getElementById('call-name').innerText = target.name;
             await setDoc(doc(db, "calls", target.num), { from: my.num, name: my.name, type: mode, ts: Date.now() });
             initCall(target.num, mode);
         };
@@ -205,16 +223,17 @@
             });
         }
 
-        // --- 共通パーツ ---
         window.openEdit = () => {
             document.getElementById('edit-name').value = my.name;
             document.getElementById('edit-emoji').innerText = my.emoji;
             document.getElementById('edit-modal').style.display = 'flex';
         };
+
         window.addFriend = async () => {
             const id = prompt("相手のID入力");
             if(id) await setDoc(doc(db, "contacts", `${my.num}_${id}`), { owner: my.num, target: id });
         };
+
         function syncContacts() {
             onSnapshot(query(collection(db, "contacts"), where("owner", "==", my.num)), async (s) => {
                 const list = document.getElementById('contact-list'); list.innerHTML = "";
@@ -244,6 +263,7 @@
                 }
             });
         }
+
         window.closeChat = () => document.getElementById('chat-view').style.display = 'none';
         window.cycleEmoji = () => {
             const el = document.getElementById('edit-emoji');
